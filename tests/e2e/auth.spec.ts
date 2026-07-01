@@ -11,7 +11,7 @@
 import { test, expect } from '@playwright/test';
 import { TEST_CREDENTIALS } from './fixtures';
 
-const { admin, resident } = TEST_CREDENTIALS;
+const { admin } = TEST_CREDENTIALS;
 
 async function scrollIntoView(page: import('@playwright/test').Page, selector: string) {
   await page.locator(selector).scrollIntoViewIfNeeded();

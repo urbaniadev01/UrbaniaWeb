@@ -5,7 +5,21 @@ import { silentRefresh, getMe } from '@/features/auth/api/auth.service'
 import { FullPageLoader } from '@/components/shared/FullPageLoader'
 import { DashboardShell } from '@/components/layout/DashboardShell'
 import { parseApiError } from '@/lib/utils'
-import type { ApiError } from '@/types/api.types'
+
+/**
+ * Determina si el usuario tiene al menos un permiso administrativo
+ * (o el rol legacy 'admin'). Reutilizado por AdminOnlyRoute y este layout.
+ */
+function isStaffUser(user: { role?: string; permissions?: string[] }): boolean {
+  if (user.role === 'admin') return true
+  const perms = user.permissions ?? []
+  return perms.some(
+    (p) =>
+      p.startsWith('roles.') ||
+      p.startsWith('auth.') ||
+      p.startsWith('authorization.'),
+  )
+}
 
 export function DashboardLayout() {
   const { accessToken, setUser, clearSession } = useAuthStore()
@@ -37,7 +51,9 @@ export function DashboardLayout() {
           user = await getMe()
         }
 
-        if (user.role !== 'admin') {
+        // Aceptar admin legacy o cualquier usuario con permisos administrativos.
+        // Un usuario 'user' sin permisos administrativos es rechazado.
+        if (!isStaffUser(user)) {
           clearSession()
           navigate('/login', { replace: true })
           return
